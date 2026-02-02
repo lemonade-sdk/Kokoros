@@ -65,9 +65,9 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       shell: bash
       run: |
-        chmod +x extract_lib.sh
+        chmod +x extract_libs.sh
         cd archive/${{ matrix.archive }}
-        ../../extract_lib.sh koko
+        ../../extract_libs.sh koko
 
     - name: Compress archive
       shell: bash
