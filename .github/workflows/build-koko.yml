@@ -1,12 +1,5 @@
 name: Build Kokoros
 on:
-  push:
-    inputs:
-      create_release:
-        description: 'Create a new release'
-        required: false
-        default: 'false'
-        type: boolean
   workflow_dispatch:
     inputs:
       create_release:
@@ -88,8 +81,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: v${{ github.run_number }}
-        release_name: Release ${{ github.run_number }}
+        tag_name: b${{ github.run_number }}
+        release_name: b${{ github.run_number }}
         draft: false
         prerelease: false
 
