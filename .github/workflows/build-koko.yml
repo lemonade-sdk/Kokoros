@@ -67,7 +67,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: kokoros-build-${{ matrix.archive }}
-        path: archive/kokoros-${{ matrix.archive }}.tar.gz
+        path: archive/${{ matrix.archive }}/
         retention-days: 7
 
     - name: Create Release
