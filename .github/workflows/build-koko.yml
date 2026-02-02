@@ -1,0 +1,79 @@
+name: Build Kokoros
+on:
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Create a new release'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }}-${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            archive: linux-x86_64
+          - os: windows-latest
+            target: x86_64-pc-windows-gnu
+            archive: windows-x86_64
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        target: ${{ matrix.target }}
+        override: true
+
+    - name: Install deps (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y musl-tools musl-dev wget pkg-config libssl-dev clang git cmake libsonic-dev libpcaudio-dev libopus-dev
+
+    - name: Install deps (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        echo "Nothing to do for now"
+
+    - name: Build project
+      run: |
+        cargo build --release --target ${{ matrix.target }}
+
+    - name: Create archive
+      shell: bash
+      run: |
+        mkdir -p archive/${{ matrix.archive }}
+        cp target/${{ matrix.target }}/release/koko archive/${{ matrix.archive }}/
+        cd archive
+        tar -czf kokoros-${{ matrix.archive }}.tar.gz ${{ matrix.archive }}
+
+    - name: Create Release
+      if: github.event.inputs.create_release == 'true'
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ github.run_number }}
+        release_name: Release ${{ github.run_number }}
+        draft: false
+        prerelease: false
+
+    - name: Upload release asset
+      if: github.event.inputs.create_release == 'true'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./archive/kokoros-${{ matrix.archive }}.tar.gz
+        asset_name: kokoros-${{ matrix.archive }}.tar.gz
+        asset_content_type: application/gzip
