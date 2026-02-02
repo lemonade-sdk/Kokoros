@@ -23,7 +23,7 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            target: x86_64-unknown-linux-musl
+            target: x86_64-unknown-linux-gnu
             archive: linux-x86_64
           - os: windows-latest
             target: x86_64-pc-windows-msvc
@@ -44,22 +44,34 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
-        sudo apt-get install -y musl-tools musl-dev wget pkg-config libssl-dev clang git cmake libsonic-dev libpcaudio-dev libopus-dev
+        sudo apt-get install -y wget pkg-config libssl-dev clang git cmake libsonic-dev libpcaudio-dev libopus-dev
 
     - name: Install deps (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        echo "Nothing to do for now"
+        echo "Nothing to do"
 
     - name: Build project
       run: |
         cargo build --release --target ${{ matrix.target }}
 
-    - name: Create archive
+    - name: Prepare archive
       shell: bash
       run: |
         mkdir -p archive/${{ matrix.archive }}
         cp target/${{ matrix.target }}/release/koko archive/${{ matrix.archive }}/
+
+    - name: Bundle deps
+      if: matrix.os == 'ubuntu-latest'
+      shell: bash
+      run: |
+        chmod +x extract_lib.sh
+        cd archive/${{ matrix.archive }}
+        ../../extract_lib.sh koko
+
+    - name: Compress archive
+      shell: bash
+      run: |
         cd archive
         tar -czf kokoros-${{ matrix.archive }}.tar.gz ${{ matrix.archive }}
 
