@@ -63,11 +63,11 @@ jobs:
         cd archive
         tar -czf kokoros-${{ matrix.archive }}.tar.gz ${{ matrix.archive }}
 
-    - name: Upload tar.gz
+    - name: Upload archive
       uses: actions/upload-artifact@v4
       with:
         name: kokoros-build-${{ matrix.archive }}
-        path: kokoros-${{ matrix.archive }}.tar.gz
+        path: archive/kokoros-${{ matrix.archive }}.tar.gz
         retention-days: 7
 
     - name: Create Release
