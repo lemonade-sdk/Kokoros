@@ -8,6 +8,9 @@ on:
         default: 'false'
         type: boolean
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build ${{ matrix.os }}-${{ matrix.target }}
@@ -50,6 +53,11 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: |
         echo "Nothing to do"
+
+    - name: Install deps (macOS)
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        brew install cmake opus
 
     - name: Build project
       run: |
