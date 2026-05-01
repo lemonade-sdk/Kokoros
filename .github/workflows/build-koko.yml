@@ -8,11 +8,15 @@ on:
         default: 'false'
         type: boolean
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build ${{ matrix.os }}-${{ matrix.target }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
@@ -21,6 +25,12 @@ jobs:
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             archive: windows-x86_64
+          - os: macos-14
+            target: aarch64-apple-darwin
+            archive: darwin-arm64-metal
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            archive: darwin-arm64-metal-latest
 
     steps:
     - name: Checkout code
@@ -43,6 +53,11 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: |
         echo "Nothing to do"
+
+    - name: Install deps (macOS)
+      if: startsWith(matrix.os, 'macos')
+      run: |
+        brew install cmake opus
 
     - name: Build project
       run: |
