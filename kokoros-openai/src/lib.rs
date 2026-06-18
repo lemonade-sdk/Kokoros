@@ -312,7 +312,10 @@ fn get_language_code(lang_code: Option<&str>, voice: &str) -> String {
             .unwrap();
         match prefix {
             'a' => "en-us",
-            'b' => "en-gb",
+            // British English voices: "en-gb" is not a valid espeak-ng voice id,
+            // so it produces empty phonemes -> near-empty audio. Use the RP British
+            // identifier that espeak-ng actually recognizes.
+            'b' => "en-gb-x-rp",
             'p' => "pt-br",
             'j' => "ja",
             'z' => "cmn",
