@@ -122,5 +122,88 @@ jobs:
             release_id: releaseId,
             data: assetData
           });
-          
+
+          console.log('Uploaded asset:', response.data.browser_download_url);
+
+  # musl (Alpine). Built inside an Alpine container so cargo targets musl
+  # natively (no cross toolchain). arm64 runs on native ARM runners.
+  build-musl:
+    name: Build linux-musl-${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            arch: x86_64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Build (Alpine / musl)
+      run: |
+        docker run --rm -v "$PWD:/src" -w /src alpine:latest sh -euxc '
+          apk add --no-cache build-base cmake git cargo rust opus-dev openssl-dev pkgconf clang
+          cargo build --release
+          chmod -R a+rwX target
+        '
+
+    - name: Prepare archive
+      run: |
+        mkdir -p archive/linux-musl-${{ matrix.arch }}
+        cp target/release/koko archive/linux-musl-${{ matrix.arch }}/
+        cp -pr espeak-ng-data archive/linux-musl-${{ matrix.arch }}/espeak-ng-data
+
+    - name: Compress archive
+      run: |
+        cd archive
+        tar -czf kokoros-linux-musl-${{ matrix.arch }}.tar.gz linux-musl-${{ matrix.arch }}
+
+    - name: Upload archive
+      uses: actions/upload-artifact@v4
+      with:
+        name: kokoros-build-linux-musl-${{ matrix.arch }}
+        path: archive/linux-musl-${{ matrix.arch }}/
+        retention-days: 7
+
+    - name: Upload release asset
+      if: github.event.inputs.create_release == 'true'
+      uses: actions/github-script@v7
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        script: |
+          const fs = require('fs').promises;
+          const releases = await github.rest.repos.listReleases({
+            owner: context.repo.owner,
+            repo: context.repo.repo
+          });
+
+          let releaseId = releases.data.find(r => r.tag_name === `b${{ github.run_number }}`)?.id;
+
+          if (!releaseId) {
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: `b${{ github.run_number }}`,
+              name: `b${{ github.run_number }}`,
+              draft: false,
+              prerelease: false
+            });
+            releaseId = release.data.id;
+          }
+
+          const assetData = await fs.readFile('./archive/kokoros-linux-musl-${{ matrix.arch }}.tar.gz');
+          const assetName = 'kokoros-linux-musl-${{ matrix.arch }}.tar.gz';
+
+          const response = await github.rest.repos.uploadReleaseAsset({
+            name: assetName,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            release_id: releaseId,
+            data: assetData
+          });
+
           console.log('Uploaded asset:', response.data.browser_download_url);
