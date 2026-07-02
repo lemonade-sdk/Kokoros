@@ -145,7 +145,8 @@ jobs:
     - name: Build (Alpine / musl)
       run: |
         docker run --rm -v "$PWD:/src" -w /src alpine:latest sh -euxc '
-          apk add --no-cache build-base cmake git cargo rust opus-dev openssl-dev pkgconf clang
+          apk add --no-cache build-base cmake git cargo rust opus-dev openssl-dev pkgconf clang clang-dev llvm-dev
+          export LIBCLANG_PATH=/usr/lib
           cargo build --release
           chmod -R a+rwX target
         '
