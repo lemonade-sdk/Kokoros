@@ -7,9 +7,17 @@ on:
         required: false
         default: 'false'
         type: boolean
+      release_tag:
+        description: "Release tag (pin to match lemonade's kokoro version, e.g. b17)"
+        required: false
+        default: 'b17'
+        type: string
 
 permissions:
   contents: write
+
+env:
+  RELEASE_TAG: ${{ github.event.inputs.release_tag || format('b{0}', github.run_number) }}
 
 jobs:
   build:
@@ -97,15 +105,15 @@ jobs:
             repo: context.repo.repo
           });
           
-          let releaseId = releases.data.find(r => r.tag_name === `b${{ github.run_number }}`)?.id;
+          let releaseId = releases.data.find(r => r.tag_name === `${{ env.RELEASE_TAG }}`)?.id;
           
           if (!releaseId) {
             // If no release exists, create one (only for Linux)
             const release = await github.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              tag_name: `b${{ github.run_number }}`,
-              name: `b${{ github.run_number }}`,
+              tag_name: `${{ env.RELEASE_TAG }}`,
+              name: `${{ env.RELEASE_TAG }}`,
               draft: false,
               prerelease: false
             });
@@ -182,14 +190,14 @@ jobs:
             repo: context.repo.repo
           });
 
-          let releaseId = releases.data.find(r => r.tag_name === `b${{ github.run_number }}`)?.id;
+          let releaseId = releases.data.find(r => r.tag_name === `${{ env.RELEASE_TAG }}`)?.id;
 
           if (!releaseId) {
             const release = await github.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              tag_name: `b${{ github.run_number }}`,
-              name: `b${{ github.run_number }}`,
+              tag_name: `${{ env.RELEASE_TAG }}`,
+              name: `${{ env.RELEASE_TAG }}`,
               draft: false,
               prerelease: false
             });
