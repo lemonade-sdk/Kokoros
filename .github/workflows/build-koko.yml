@@ -153,8 +153,13 @@ jobs:
     - name: Build (Alpine / musl)
       run: |
         docker run --rm -v "$PWD:/src" -w /src alpine:latest sh -euxc '
-          apk add --no-cache build-base cmake git cargo rust opus-dev openssl-dev pkgconf clang clang-dev llvm-dev
+          apk add --no-cache build-base cmake git cargo rust opus-dev openssl-dev pkgconf clang clang-dev llvm-dev onnxruntime onnxruntime-dev
           export LIBCLANG_PATH=/usr/lib
+          # No prebuilt ONNX Runtime exists for musl, so dynamically link the
+          # system libonnxruntime (from the onnxruntime apk) instead of letting
+          # the ort crate download a glibc binary.
+          export ORT_LIB_LOCATION=/usr/lib
+          export ORT_PREFER_DYNAMIC_LINK=1
           cargo build --release
           chmod -R a+rwX target
         '
