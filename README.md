@@ -9,6 +9,9 @@
 ## [Orpheus-TTS On The Way?](https://github.com/lucasjinreal/Kokoros/issues/75)
 
 
+### Updates: Now we have a cleaner & faster Kokoro model: https://github.com/lucasjinreal/Crane, and more TTS & ASR models support in it!
+
+
 **ASMR**
 
 https://github.com/user-attachments/assets/1043dfd3-969f-4e10-8b56-daf8285e7420
