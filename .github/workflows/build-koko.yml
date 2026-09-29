@@ -22,7 +22,7 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             archive: linux-x86_64
-          - os: windows-latest
+          - os: windows-2022
             target: x86_64-pc-windows-msvc
             archive: windows-x86_64
           - os: macos-14
