@@ -319,7 +319,7 @@ fn get_language_code(lang_code: Option<&str>, voice: &str) -> String {
             'p' => "pt-br",
             'j' => "ja",
             'z' => "cmn",
-            'f' => "fr-fr",
+            'f' => "fr",
             'h' => "hi",
             'i' => "it",
             'e' => "es",
